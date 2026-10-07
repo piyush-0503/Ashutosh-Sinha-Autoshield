@@ -12,7 +12,7 @@ const galleryRoutes = require("./routes/galleryRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const productRoutes = require("./routes/productRoutes");
-const paymentRoutes = require("./routes/paymentRoutes");
+
 const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
@@ -66,7 +66,7 @@ app.use("/api/gallery", galleryRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/products", productRoutes);
-app.use("/api/payments", paymentRoutes);
+
 app.use("/api/upload", uploadRoutes);
 
 /* =========================
