@@ -49,7 +49,7 @@ export default function Gallery() {
               "0 0 25px rgba(212,175,55,0.35)",
           }}
         >
-          Gallery Showcase
+          Gallery
         </h1>
 
         <p

@@ -61,7 +61,7 @@ export default function PpfMaterial() {
             color: "#ff3b3b",
           }}
         >
-          Premium PPF Materials
+          PPF Materials
         </h1>
 
         <p

@@ -301,15 +301,7 @@ Estimated Cost: ₹${getNumericPrice()}`;
           }}
         />
 
-        <h1
-          style={{
-            color: "#00ff88",
-            textAlign: "center",
-            fontSize: "48px",
-          }}
-        >
-          ₹{getNumericPrice().toLocaleString()}
-        </h1>
+        
 
         
 

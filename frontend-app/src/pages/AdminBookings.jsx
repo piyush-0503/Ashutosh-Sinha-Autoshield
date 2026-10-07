@@ -27,7 +27,6 @@ export default function AdminBookings() {
       );
 
       alert("Job Completed Successfully ✅");
-
       fetchBookings();
     } catch (error) {
       console.log(error);
@@ -42,7 +41,6 @@ export default function AdminBookings() {
       );
 
       alert("Booking Deleted ✅");
-
       fetchBookings();
     } catch (error) {
       console.log(error);
@@ -56,26 +54,32 @@ export default function AdminBookings() {
         minHeight: "100vh",
         background: "#050505",
         color: "#fff",
-        padding: "40px",
+        padding:
+          window.innerWidth < 768
+            ? "15px"
+            : "40px",
         fontFamily: "Poppins, sans-serif",
       }}
     >
       <h1
-  style={{
-    textAlign: "center",
-    fontSize: "42px",
-    marginBottom: "30px",
-    marginTop: "20px",
-    fontWeight: "800",
-    lineHeight: "1.2",
-    background:
-      "linear-gradient(90deg,#FFD700,#ff6b00)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  }}
->
-  Premium Booking Center
-</h1>
+        style={{
+          textAlign: "center",
+          fontSize:
+            window.innerWidth < 768
+              ? "28px"
+              : "42px",
+          marginBottom: "30px",
+          marginTop: "20px",
+          fontWeight: "800",
+          lineHeight: "1.3",
+          background:
+            "linear-gradient(90deg,#FFD700,#ff6b00)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+        }}
+      >
+        Premium Booking Center
+      </h1>
 
       <div
         style={{
@@ -83,19 +87,21 @@ export default function AdminBookings() {
           borderRadius: "25px",
           padding: "20px",
           overflowX: "auto",
-          border: "1px solid rgba(255,215,0,0.15)",
+          overflowY: "hidden",
+          WebkitOverflowScrolling: "touch",
+          border:
+            "1px solid rgba(255,215,0,0.15)",
           boxShadow:
             "0 0 30px rgba(255,215,0,0.08)",
         }}
       >
         <table
-  style={{
-    width: "100%",
-    borderCollapse: "collapse",
-    tableLayout: "fixed",
-  }}
->
-        
+          style={{
+            width: "100%",
+            minWidth: "900px",
+            borderCollapse: "collapse",
+          }}
+        >
           <thead>
             <tr>
               {[
@@ -110,12 +116,13 @@ export default function AdminBookings() {
                 <th
                   key={item}
                   style={{
-                    padding: "12px",
+                    padding: "14px",
                     color: "#FFD700",
-                    fontSize: "18px",
+                    fontSize: "17px",
                     textAlign: "center",
                     borderBottom:
                       "1px solid rgba(255,215,0,0.3)",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {item}
@@ -137,71 +144,34 @@ export default function AdminBookings() {
                       "1px solid rgba(255,255,255,0.06)",
                   }}
                 >
-                  <td
-                    style={{
-                      padding: "12px",
-                      textAlign: "center",
-                      fontSize: "14px",
-wordBreak: "break-word",
-                    }}
-                  >
+                  <td style={cellStyle}>
                     {b.customerName}
                   </td>
 
-                  <td
-                    style={{
-                      padding: "12px",
-                      textAlign: "center",
-                      fontSize: "14px",
-wordBreak: "break-word",
-                    }}
-                  >
+                  <td style={cellStyle}>
                     {b.phone}
                   </td>
 
-                  <td
-                    style={{
-                      padding: "12px",
-                      textAlign: "center",
-                      fontSize: "14px",
-wordBreak: "break-word",
-                    }}
-                  >
-                    {b.brand} {b.vehicleModel}
+                  <td style={cellStyle}>
+                    {b.brand}{" "}
+                    {b.vehicleModel}
                   </td>
 
-                  <td
-                    style={{
-                      padding: "12px",
-                      textAlign: "center",
-                      fontSize: "14px",
-wordBreak: "break-word",
-                    }}
-                  >
+                  <td style={cellStyle}>
                     {b.serviceType}
                   </td>
 
                   <td
                     style={{
-                      padding: "12px",
-                      textAlign: "center",
+                      ...cellStyle,
                       color: "#00e676",
                       fontWeight: "700",
-                      fontSize: "14px",
-wordBreak: "break-word",
                     }}
                   >
                     ₹{b.estimatedPrice}
                   </td>
 
-                  <td
-                    style={{
-                      padding: "12px",
-                      textAlign: "center",
-                      fontSize: "14px",
-wordBreak: "break-word",
-                    }}
-                  >
+                  <td style={cellStyle}>
                     <span
                       style={{
                         background:
@@ -211,6 +181,8 @@ wordBreak: "break-word",
                           "8px 14px",
                         borderRadius: "20px",
                         fontWeight: "600",
+                        whiteSpace:
+                          "nowrap",
                       }}
                     >
                       {b.status}
@@ -228,8 +200,8 @@ wordBreak: "break-word",
                         display: "flex",
                         justifyContent:
                           "center",
-                        gap: "10px",
-                        flexWrap: "nowrap",
+                        gap: "8px",
+                        minWidth: "170px",
                       }}
                     >
                       <button
@@ -242,12 +214,14 @@ wordBreak: "break-word",
                           background:
                             "linear-gradient(135deg,#00c853,#00e676)",
                           border: "none",
-                          padding: "8px 12px",
-fontSize: "13px",
+                          padding:
+                            "10px 14px",
                           color: "#fff",
-                          borderRadius: "10px",
+                          borderRadius:
+                            "10px",
                           cursor: "pointer",
-                          fontWeight: "700",
+                          fontWeight:
+                            "700",
                           whiteSpace:
                             "nowrap",
                         }}
@@ -265,12 +239,14 @@ fontSize: "13px",
                           background:
                             "linear-gradient(135deg,#ff1744,#ff4569)",
                           border: "none",
-                          padding: "8px 12px",
-fontSize: "13px",
+                          padding:
+                            "10px 14px",
                           color: "#fff",
-                          borderRadius: "10px",
+                          borderRadius:
+                            "10px",
                           cursor: "pointer",
-                          fontWeight: "700",
+                          fontWeight:
+                            "700",
                           whiteSpace:
                             "nowrap",
                         }}
@@ -287,3 +263,10 @@ fontSize: "13px",
     </div>
   );
 }
+
+const cellStyle = {
+  padding: "12px",
+  textAlign: "center",
+  fontSize: "14px",
+  whiteSpace: "nowrap",
+};
