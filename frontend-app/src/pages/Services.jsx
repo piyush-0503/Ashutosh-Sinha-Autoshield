@@ -4,56 +4,56 @@ export default function Services() {
   const services = [
     {
       title: "Paint Protection Film",
-      price: "₹45,000 Onwards",
+      price: "",
       image:
         "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000",
       desc: "Premium self-healing protection against scratches and stone chips.",
     },
     {
       title: "Ceramic Coating",
-      price: "₹12,000 Onwards",
+      price: "",
       image:
         "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1000",
       desc: "Long lasting gloss and hydrophobic protection.",
     },
     {
       title: "Car Wrapping",
-      price: "₹25,000 Onwards",
+      price: "",
       image:
         "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1000",
       desc: "Premium color customization and styling.",
     },
     {
       title: "Interior Detailing",
-      price: "₹3,500 Onwards",
+      price: "",
       image:
         "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=1000",
       desc: "Deep cleaning and restoration of interior surfaces.",
     },
     {
       title: "Exterior Detailing",
-      price: "₹4,500 Onwards",
+      price: "",
       image:
         "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000",
       desc: "Showroom finish polishing and protection.",
     },
     {
       title: "Bike PPF",
-      price: "₹8,000 Onwards",
+      price: "",
       image:
         "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1000",
       desc: "Premium protection film for bikes.",
     },
     {
       title: "Graphene Coating",
-      price: "₹15,000 Onwards",
+      price: "",
       image:
         "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000",
       desc: "Advanced coating technology with extra durability.",
     },
     {
       title: "PPF Material Sales",
-      price: "₹1200 / Feet",
+      price: "",
       image:
         "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=1000",
       desc: "Buy XPEL, Garware, Llumar & STEK PPF rolls.",
@@ -168,21 +168,7 @@ export default function Services() {
                   marginTop: "20px",
                 }}
               >
-                <button
-                  style={{
-                    flex: 1,
-                    background:
-                      "linear-gradient(90deg,#7b112d,#D4AF37)",
-                    color: "#fff",
-                    border: "none",
-                    padding: "12px",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    fontWeight: "700",
-                  }}
-                >
-                  View Details
-                </button>
+
 
                 <Link
                   to="/book"

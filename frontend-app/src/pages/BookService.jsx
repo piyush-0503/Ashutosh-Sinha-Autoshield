@@ -1,25 +1,51 @@
+
 import { useState } from "react";
 import axios from "axios";
 
-const services = {
-  PPF: 85000,
-  "Ceramic Coating": 25000,
-  "Graphene Coating": 35000,
-  "Car Wrapping": 45000,
-  "Paint Correction": 18000,
-  Detailing: 8000,
-  "Interior Detailing": 6000,
-  "Bike PPF": 15000,
-  "Bike Ceramic": 6000,
+const servicesList = [
+  "PPF",
+  "Ceramic Coating",
+  "Graphene Coating",
+  "Car Wrapping",
+  "Paint Correction",
+  "Detailing",
+  "Interior Detailing",
+  "Bike PPF",
+  "Bike Ceramic",
+];
+
+// Local development: http://localhost:5000
+// Deployment: Vercel Environment Variables mein VITE_API_URL set karo.
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
+
+const inputStyle = {
+  width: "100%",
+  minWidth: 0,
+  padding: "14px 15px",
+  marginBottom: "15px",
+  background: "#1a1a1a",
+  color: "#fff",
+  border: "1px solid #383838",
+  borderRadius: "10px",
+  fontSize: "16px",
+  boxSizing: "border-box",
 };
+
+
 
 export default function BookService() {
   const [bookingResult, setBookingResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [form, setForm] = useState({
     name: "",
     phone: "",
+    email: "",
     state: "",
+    city: "",
     vehicleType: "Car",
     brand: "",
     model: "",
@@ -27,317 +53,522 @@ export default function BookService() {
     slotDate: "",
   });
 
+  const today = new Date();
+  const minDate = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
+
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+
+    setErrorMessage("");
   };
 
-  const getNumericPrice = () => {
-    return services[form.service] || 0;
-  };
 
-  const advanceAmount = Math.round(getNumericPrice() * 0.1);
 
-  const whatsappMessage = `Hello PPF Studio
+  const whatsappMessage = `Hello PPF Studio,
 
 Name: ${form.name}
 Phone: ${form.phone}
+Email: ${form.email}
+Location: ${form.city}, ${form.state}
 Vehicle Type: ${form.vehicleType}
 Brand: ${form.brand}
 Model: ${form.model}
 Service: ${form.service}
-Date: ${form.slotDate}
+Preferred Date: ${form.slotDate}
 
-Estimated Cost: ₹${getNumericPrice()}`;
 
-  const whatsappLink = `https://wa.me/917570908459?text=${encodeURIComponent(
-    whatsappMessage
-  )}`;
+
+Please confirm availability and final pricing.`;
+
+  const whatsappLink =
+    "https://wa.me/917570908459?text=" +
+    encodeURIComponent(whatsappMessage);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (loading) return;
+
+    setErrorMessage("");
+    setBookingResult(null);
+
+    if (!servicesList.includes(form.service)) {
+  setErrorMessage("Please select a valid service.");
+  return;
+}
+
+    if (form.phone.replace(/\D/g, "").length !== 10) {
+      setErrorMessage("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    if (form.slotDate < minDate) {
+      setErrorMessage("Please select today or a future date.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const bookingData = {
-        customerName: form.name,
-        phone: form.phone,
+        customerName: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
         state: form.state,
+        city: form.city.trim(),
         vehicleType: form.vehicleType,
-        brand: form.brand,
-        vehicleModel: form.model,
+        brand: form.brand.trim(),
+        vehicleModel: form.model.trim(),
         serviceType: form.service,
+        bookingDate: form.slotDate,
         slotDate: form.slotDate,
         slotTime: "Not Selected",
-        bookingDate: new Date(),
-        estimatedPrice: getNumericPrice(),
+       
       };
 
       const response = await axios.post(
-        "http://localhost:5000/api/bookings",
-        bookingData
+        `${API_BASE_URL}/api/bookings`,
+        bookingData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 20000,
+        }
       );
 
-      setBookingResult(response.data.booking);
+      if (response.status >= 200 && response.status < 300) {
+        setBookingResult(
+          response.data?.booking || response.data
+        );
 
-      alert("Booking Submitted Successfully ✅");
+        alert(
+          "Booking request submitted successfully! Please wait for confirmation."
+        );
+
+        // Form clear karne se pehle submitted details result mein preserve hain.
+        setForm({
+          name: "",
+          phone: "",
+          email: "",
+          state: "",
+          city: "",
+          vehicleType: "Car",
+          brand: "",
+          model: "",
+          service: "",
+          slotDate: "",
+        });
+      }
     } catch (error) {
-      console.log(error);
+      console.error(
+        "Booking submission error:",
+        error.response?.data || error.message
+      );
+
+      const serverMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error;
 
       if (error.response) {
-        alert(error.response.data.message);
+        setErrorMessage(
+          serverMessage ||
+            `Server error (${error.response.status}). Please check your backend.`
+        );
+      } else if (error.code === "ECONNABORTED") {
+        setErrorMessage(
+          "Server response timed out. Please check whether the backend is running."
+        );
       } else {
-        alert("Booking Failed ❌");
+        setErrorMessage(
+          `Backend se connection nahi ho raha. API URL check karo: ${API_BASE_URL}`
+        );
       }
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
-  <div
-    style={{
-      minHeight: "100vh",
-      background:
-        "radial-gradient(circle at top,#2b0018,#050505)",
-      padding: "120px 40px 60px",
-      color: "#fff",
-    }}
-  >
-    <h1
-  style={{
-    textAlign: "center",
-    fontSize: "clamp(40px, 6vw, 70px)",
-    fontWeight: "800",
-    marginTop: "20px",
-    marginBottom: "50px",
-    lineHeight: "1.2",
-    background: "linear-gradient(90deg,#FFD700,#FF7A00)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    textShadow: "0 0 20px rgba(255,215,0,0.2)",
-  }}
->
-  Book Your Appointment
-</h1>
+    <main className="booking-page">
+      <style>{`
+        .booking-page,
+        .booking-page * {
+          box-sizing: border-box;
+        }
 
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1.2fr 1fr",
-        gap: "35px",
-        maxWidth: "1400px",
-        margin: "auto",
-      }}
-    >
-      {/* FORM */}
+        .booking-page {
+          min-height: 100vh;
+          width: 100%;
+          overflow-x: clip;
+          padding: 45px 18px 60px;
+          background: radial-gradient(circle at top,#2b0018,#050505);
+          color: #fff;
+        }
 
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          background: "#111",
-          padding: "35px",
-          borderRadius: "25px",
-          border: "1px solid rgba(255,215,0,.15)",
-          boxShadow:
-            "0 0 30px rgba(255,215,0,.08)",
-        }}
-      >
-        <h2
-          style={{
-            textAlign: "center",
-            color: "#FFD700",
-            marginBottom: "25px",
-          }}
-        >
-          Studio Details
-        </h2>
+        .booking-title {
+          text-align: center;
+          font-size: clamp(32px,5vw,58px);
+          line-height: 1.2;
+          margin: 20px auto 38px;
+          overflow-wrap: anywhere;
+          background: linear-gradient(90deg,#FFD700,#FF7A00);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
 
-        <input
-          name="name"
-          placeholder="Studio Name"
-          value={form.name}
-          onChange={handleChange}
-          style={inputStyle}
-          required
-        />
+        .booking-layout {
+          width: 100%;
+          max-width: 1250px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr);
+          align-items: start;
+          gap: 25px;
+        }
 
-        <input
-          name="phone"
-          placeholder="Phone Number"
-          value={form.phone}
-          onChange={handleChange}
-          style={inputStyle}
-          required
-        />
+        .booking-panel {
+          min-width: 0;
+          padding: clamp(18px,3vw,32px);
+          background: #111;
+          border: 1px solid rgba(255,215,0,.18);
+          border-radius: 20px;
+          box-shadow: 0 0 30px rgba(255,215,0,.06);
+        }
 
-        <select
-          name="state"
-          value={form.state}
-          onChange={handleChange}
-          style={inputStyle}
-          required
-        >
-          <option value="">Select State</option>
-          <option>Punjab</option>
-          <option>Chandigarh</option>
-          <option>Delhi</option>
-          <option>Haryana</option>
-          <option>Jammu</option>
-          <option>Kashmir</option>
-        </select>
+        .booking-panel h2 {
+          color: #FFD700;
+          text-align: center;
+          margin: 0 0 24px;
+          font-size: clamp(22px,3vw,28px);
+        }
 
-        <select
-          name="vehicleType"
-          value={form.vehicleType}
-          onChange={handleChange}
-          style={inputStyle}
-        >
-          <option>Car</option>
-          <option>Bike</option>
-        </select>
+        .booking-field-label {
+          display: block;
+          color: #ddd;
+          font-size: 14px;
+          margin-bottom: 7px;
+        }
 
-        <input
-          name="brand"
-          placeholder="Enter Vehicle Brand"
-          value={form.brand}
-          onChange={handleChange}
-          style={inputStyle}
-          required
-        />
+        .booking-error {
+          margin-bottom: 18px;
+          padding: 13px;
+          border: 1px solid #b83c4b;
+          border-radius: 10px;
+          background: #32151b;
+          color: #ffb7c0;
+          line-height: 1.6;
+          overflow-wrap: anywhere;
+        }
 
-        <input
-          name="model"
-          placeholder="Enter Vehicle Model"
-          value={form.model}
-          onChange={handleChange}
-          style={inputStyle}
-          required
-        />
+        .booking-submit {
+          width: 100%;
+          min-height: 50px;
+          padding: 14px;
+          margin-top: 6px;
+          border: none;
+          border-radius: 10px;
+          background: linear-gradient(90deg,#ff0000,#ff9800);
+          color: white;
+          font-size: 17px;
+          font-weight: 700;
+          cursor: pointer;
+        }
 
-        <select
-          name="service"
-          value={form.service}
-          onChange={handleChange}
-          style={inputStyle}
-          required
-        >
-          <option value="">Select Service</option>
+        .booking-submit:disabled {
+          opacity: .65;
+          cursor: wait;
+        }
 
-          {Object.keys(services).map((service) => (
-            <option key={service}>
-              {service}
-            </option>
-          ))}
-        </select>
+        .booking-summary-row {
+          margin-bottom: 12px;
+          color: #ddd;
+          line-height: 1.65;
+          overflow-wrap: anywhere;
+        }
 
-        <input
-          type="date"
-          name="slotDate"
-          value={form.slotDate}
-          onChange={handleChange}
-          style={inputStyle}
-          required
-        />
+        .booking-summary-row strong {
+          color: #fff;
+        }
 
-        <button
-          type="submit"
-          style={{
-            width: "100%",
-            padding: "18px",
-            border: "none",
-            borderRadius: "12px",
-            background:
-              "linear-gradient(90deg,#ff0000,#ff9800)",
-            color: "#fff",
-            fontSize: "18px",
-            fontWeight: "700",
-            cursor: "pointer",
-            marginTop: "10px",
-          }}
-        >
-          Book Appointment
-        </button>
-      </form>
+        .booking-whatsapp {
+          display: block;
+          width: 100%;
+          padding: 15px;
+          margin-top: 25px;
+          border-radius: 10px;
+          background: #25D366;
+          color: #fff;
+          font-weight: 700;
+          text-align: center;
+          text-decoration: none;
+        }
 
-      {/* SUMMARY */}
+        .booking-success {
+          margin-bottom: 18px;
+          padding: 14px;
+          border: 1px solid #218c54;
+          border-radius: 10px;
+          background: #10271a;
+          color: #a8f0c4;
+          overflow-wrap: anywhere;
+        }
 
-      <div
-        style={{
-          background: "#111",
-          padding: "35px",
-          borderRadius: "25px",
-          border: "1px solid rgba(255,215,0,.15)",
-          boxShadow:
-            "0 0 30px rgba(255,215,0,.08)",
-          height: "fit-content",
-        }}
-      >
-        <h2
-          style={{
-            textAlign: "center",
-            color: "#FFD700",
-          }}
-        >
-          Booking Summary
-        </h2>
+        @media(max-width:800px) {
+          .booking-layout {
+            grid-template-columns: minmax(0,1fr);
+          }
 
-        <div
-          style={{
-            marginTop: "25px",
-            lineHeight: "2",
-            fontSize: "20px",
-          }}
-        >
-          <p><b>Name:</b> {form.name}</p>
-          <p><b>Phone:</b> {form.phone}</p>
-          <p><b>Vehicle:</b> {form.brand} {form.model}</p>
-          <p><b>Service:</b> {form.service}</p>
-          <p><b>Date:</b> {form.slotDate}</p>
-        </div>
+          .booking-page {
+            padding: 28px 14px 40px;
+          }
+        }
+      `}</style>
 
-        <hr
-          style={{
-            margin: "30px 0",
-            borderColor: "#333",
-          }}
-        />
+      <h1 className="booking-title">Book Your Appointment</h1>
 
-        
+      <div className="booking-layout">
+        {/* BOOKING FORM */}
+        <form className="booking-panel" onSubmit={handleSubmit}>
+          <h2>Customer & Vehicle Details</h2>
 
-        
+          {errorMessage && (
+            <div className="booking-error" role="alert">
+              <strong>Booking failed:</strong> {errorMessage}
+            </div>
+          )}
 
-        <a
-          href={whatsappLink}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: "block",
-            textAlign: "center",
-            marginTop: "30px",
-            padding: "16px",
-            borderRadius: "12px",
-            textDecoration: "none",
-            background: "#25D366",
-            color: "#fff",
-            fontWeight: "700",
-          }}
-        >
-          Confirm On WhatsApp
-        </a>
+          {bookingResult && (
+            <div className="booking-success" role="status">
+              <strong>Booking request submitted.</strong>
+              <p style={{ marginTop: 6 }}>
+                Please wait for the studio to confirm your appointment.
+              </p>
+              {bookingResult._id && (
+                <p style={{ marginTop: 6 }}>
+                  Booking ID: {bookingResult._id}
+                </p>
+              )}
+            </div>
+          )}
 
-        
+          <label className="booking-field-label" htmlFor="booking-name">
+            Customer Name
+          </label>
+          <input
+            id="booking-name"
+            name="name"
+            placeholder="Enter your full name"
+            value={form.name}
+            onChange={handleChange}
+            style={inputStyle}
+            autoComplete="name"
+            required
+          />
+
+          <label className="booking-field-label" htmlFor="booking-phone">
+            Phone Number
+          </label>
+          <input
+            id="booking-phone"
+            name="phone"
+            type="tel"
+            inputMode="numeric"
+            pattern="[0-9]{10}"
+            maxLength={10}
+            placeholder="10-digit phone number"
+            value={form.phone}
+            onChange={handleChange}
+            style={inputStyle}
+            autoComplete="tel"
+            required
+          />
+
+          <label className="booking-field-label" htmlFor="booking-email">
+            Email Address
+          </label>
+          <input
+            id="booking-email"
+            name="email"
+            type="email"
+            placeholder="Enter your email"
+            value={form.email}
+            onChange={handleChange}
+            style={inputStyle}
+            autoComplete="email"
+            required
+          />
+
+          <label className="booking-field-label" htmlFor="booking-state">
+            State / Region
+          </label>
+          <input
+            id="booking-state"
+            name="state"
+            placeholder="Enter your city"
+            value={form.state}
+            onChange={handleChange}
+            style={inputStyle}
+            required
+          />
+
+          <label className="booking-field-label" htmlFor="booking-city">
+            City
+          </label>
+          <input
+            id="booking-city"
+            name="city"
+            placeholder="Enter your city"
+            value={form.city}
+            onChange={handleChange}
+            style={inputStyle}
+            required
+          />
+
+          <label className="booking-field-label" htmlFor="booking-vehicle">
+            Vehicle Type
+          </label>
+          <select
+            id="booking-vehicle"
+            name="vehicleType"
+            value={form.vehicleType}
+            onChange={handleChange}
+            style={inputStyle}
+          >
+            <option value="Car">Car</option>
+            <option value="Bike">Bike</option>
+          </select>
+
+          <label className="booking-field-label" htmlFor="booking-brand">
+            Vehicle Brand
+          </label>
+          <input
+            id="booking-brand"
+            name="brand"
+            placeholder="e.g. Tata, Hyundai, BMW"
+            value={form.brand}
+            onChange={handleChange}
+            style={inputStyle}
+            required
+          />
+
+          <label className="booking-field-label" htmlFor="booking-model">
+            Vehicle Model
+          </label>
+          <input
+            id="booking-model"
+            name="model"
+            placeholder="e.g. Nexon, Creta, X5"
+            value={form.model}
+            onChange={handleChange}
+            style={inputStyle}
+            required
+          />
+
+          <label className="booking-field-label" htmlFor="booking-service">
+            Select Service
+          </label>
+          <select
+            id="booking-service"
+            name="service"
+            value={form.service}
+            onChange={handleChange}
+            style={inputStyle}
+            required
+          >
+            <option value="">Select Service</option>
+            {servicesList.map((service) => (
+              <option key={service} value={service}>
+                {service}
+              </option>
+            ))}
+          </select>
+
+          <label className="booking-field-label" htmlFor="booking-date">
+            Preferred Appointment Date
+          </label>
+          <input
+            id="booking-date"
+            type="date"
+            name="slotDate"
+            min={minDate}
+            value={form.slotDate}
+            onChange={handleChange}
+            style={inputStyle}
+            required
+          />
+
+          <button
+            type="submit"
+            className="booking-submit"
+            disabled={loading}
+          >
+            {loading ? "Submitting Booking..." : "Book Appointment"}
+          </button>
+        </form>
+
+        {/* BOOKING SUMMARY */}
+        <aside className="booking-panel">
+          <h2>Booking Summary</h2>
+
+          <p className="booking-summary-row">
+            <strong>Name:</strong> {form.name || "Not entered"}
+          </p>
+
+          <p className="booking-summary-row">
+            <strong>Phone:</strong> {form.phone || "Not entered"}
+          </p>
+
+          <p className="booking-summary-row">
+            <strong>Location:</strong>{" "}
+            {[form.city, form.state].filter(Boolean).join(", ") || "Not selected"}
+          </p>
+
+          <p className="booking-summary-row">
+            <strong>Vehicle:</strong>{" "}
+            {[form.brand, form.model].filter(Boolean).join(" ") || "Not entered"}
+          </p>
+
+          <p className="booking-summary-row">
+            <strong>Vehicle Type:</strong> {form.vehicleType}
+          </p>
+
+          <p className="booking-summary-row">
+            <strong>Service:</strong> {form.service || "Not selected"}
+          </p>
+
+          <p className="booking-summary-row">
+            <strong>Date:</strong> {form.slotDate || "Not selected"}
+          </p>
+
+          <hr
+            style={{
+              margin: "25px 0",
+              borderColor: "#333",
+            }}
+          />
+
+          
+
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="booking-whatsapp"
+          >
+            Confirm on WhatsApp
+          </a>
+        </aside>
       </div>
-    </div>
-  </div>
-);
+    </main>
+  );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: "16px",
-  marginBottom: "16px",
-  background: "#1a1a1a",
-  color: "#fff",
-  border: "1px solid #333",
-  borderRadius: "12px",
-  fontSize: "16px",
-};

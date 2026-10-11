@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
@@ -11,8 +12,10 @@ export default function Dashboard() {
     totalReviews: 0,
     completedJobs: 0,
     pendingJobs: 0,
-    totalRevenue: 0,
   });
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchDashboard();
@@ -20,13 +23,21 @@ export default function Dashboard() {
 
   const fetchDashboard = async () => {
     try {
+      setError("");
+
       const res = await axios.get(
         "http://localhost:5000/api/dashboard"
       );
 
-      setStats(res.data);
-    } catch (error) {
-      console.log(error);
+      setStats((previous) => ({
+        ...previous,
+        ...res.data,
+      }));
+    } catch (err) {
+      console.error("Failed to fetch dashboard:", err);
+      setError("Unable to load dashboard statistics.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,199 +47,165 @@ export default function Dashboard() {
   };
 
   return (
-    <div
+    <main
       style={{
         minHeight: "100vh",
         background: "#0b0b0b",
-        color: "white",
-        padding: "30px",
+        color: "#fff",
+        padding: "clamp(15px, 3vw, 30px)",
+        boxSizing: "border-box",
       }}
     >
       {/* Header */}
-      <div
-  style={{
-    textAlign: "center",
-    padding: "40px 20px",
-    marginBottom: "30px",
-  }}
->
-  <h1
-  style={{
-    fontSize: "70px",
-    fontWeight: "800",
-    textAlign: "center",
-    marginBottom: "20px",
-    lineHeight: "1.2",
-    background:
-      "linear-gradient(90deg,#FFD700,#FF7A00)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    display: "block",
-    overflow: "visible",
-  }}
->
-  Premium PPF Dashboard
-</h1>
-
-  <p
-    style={{
-      color: "#bbb",
-      fontSize: "22px",
-    }}
-  >
-    XPEL • Garware • Llumar • STEK
-  </p>
-</div>
-
-      {/* Stats Cards */}
-      <div
+      <header
         style={{
-          display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit,minmax(250px,1fr))",
-          gap: "20px",
+          textAlign: "center",
+          padding: "40px 10px",
+          marginBottom: 30,
         }}
       >
-        <Card
-          title="Total Bookings"
-          value={stats.totalBookings}
-        />
-
-        <Card
-          title="Pending Jobs"
-          value={stats.pendingJobs}
-        />
-
-        <Card
-          title="Completed Jobs"
-          value={stats.completedJobs}
-        />
-
-        <Card
-          title="Gallery Images"
-          value={stats.totalGallery}
-        />
-
-        <Card
-          title="Reviews"
-          value={stats.totalReviews}
-        />
-
-        <Card
-          title="Revenue"
-          value={`₹${stats.totalRevenue}`}
-        />
-      </div>
-
-      {/* Admin Actions */}
-      <div
-        style={{
-          marginTop: "50px",
-        }}
-      >
-        <h2
+        <h1
           style={{
-            color: "#ff3b3b",
+            fontSize: "clamp(32px, 5vw, 70px)",
+            fontWeight: 800,
+            margin: "0 0 20px",
+            lineHeight: 1.2,
+            overflowWrap: "anywhere",
+            background: "linear-gradient(90deg,#FFD700,#FF7A00)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
           }}
         >
-          Admin Controls
-        </h2>
+          Premium PPF Dashboard
+        </h1>
+
+        <p
+          style={{
+            color: "#bbb",
+            fontSize: "clamp(16px, 2vw, 22px)",
+          }}
+        >
+          XPEL • Garware • Llumar • STEK
+        </p>
+      </header>
+
+      {/* Status */}
+      {loading && (
+        <p style={{ textAlign: "center", color: "#FFD700" }}>
+          Loading dashboard...
+        </p>
+      )}
+
+      {error && (
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
+          <p style={{ color: "#ff7777" }}>{error}</p>
+          <button onClick={fetchDashboard} style={buttonStyle}>
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Statistics - no pricing or revenue */}
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,220px),1fr))",
+          gap: 20,
+        }}
+      >
+        <Card title="Total Bookings" value={stats.totalBookings} />
+        <Card title="Pending Jobs" value={stats.pendingJobs} />
+        <Card title="Completed Jobs" value={stats.completedJobs} />
+        <Card title="Gallery Images" value={stats.totalGallery} />
+        <Card title="Reviews" value={stats.totalReviews} />
+      </section>
+
+      {/* Admin Controls */}
+      <section style={{ marginTop: 50 }}>
+        <h2 style={{ color: "#ff3b3b" }}>Admin Controls</h2>
 
         <div
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gap: "20px",
-            marginTop: "20px",
+            gap: 15,
+            marginTop: 20,
           }}
         >
-          <Link
-            to="/admin/gallery"
-            style={buttonStyle}
-          >
+          <Link to="/admin/gallery" style={buttonStyle}>
             Manage Gallery
           </Link>
 
-          <Link
-            to="/admin/bookings"
-            style={buttonStyle}
-          >
+          <Link to="/admin/bookings" style={buttonStyle}>
             Manage Bookings
           </Link>
 
-          <Link
-            to="/reviews"
-            style={buttonStyle}
-          >
+          <Link to="/admin/completed" style={buttonStyle}>
+            Completed Jobs
+          </Link>
+
+          <Link to="/admin/products" style={buttonStyle}>
+            Manage Products
+          </Link>
+
+          <Link to="/reviews" style={buttonStyle}>
             View Reviews
           </Link>
 
-          <Link
-            to="/"
-            style={buttonStyle}
-          >
+          <Link to="/" style={buttonStyle}>
             Website Home
           </Link>
-          <Link
- to="/admin/products"
- style={buttonStyle}
->
- Manage Products
-</Link>
+
+          <button
+            type="button"
+            onClick={logout}
+            style={{
+              ...buttonStyle,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Logout
+          </button>
         </div>
-      </div>
-
-      {/* Revenue Box */}
-      <div
-        style={{
-          marginTop: "50px",
-          background: "#151515",
-          padding: "30px",
-          borderRadius: "15px",
-        }}
-      >
-        <h2>Total Revenue</h2>
-
-        <h1
-          style={{
-            color: "#00ff88",
-          }}
-        >
-          ₹{stats.totalRevenue}
-        </h1>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 
 function Card({ title, value }) {
   return (
-    <div
+    <article
       style={{
         background: "#151515",
-        padding: "25px",
-        borderRadius: "15px",
+        padding: 25,
+        borderRadius: 15,
         textAlign: "center",
+        border: "1px solid rgba(255,255,255,.07)",
       }}
     >
-      <h3>{title}</h3>
+      <h3 style={{ color: "#ddd", marginTop: 0 }}>{title}</h3>
 
       <h1
         style={{
           color: "#00ff88",
+          fontSize: 36,
+          marginBottom: 0,
         }}
       >
-        {value}
+        {value ?? 0}
       </h1>
-    </div>
+    </article>
   );
 }
 
 const buttonStyle = {
+  display: "inline-block",
   background: "#ff3b3b",
-  color: "white",
-  padding: "15px 25px",
-  borderRadius: "10px",
+  color: "#fff",
+  padding: "13px 20px",
+  borderRadius: 10,
   textDecoration: "none",
   fontWeight: "bold",
+  fontSize: 14,
 };

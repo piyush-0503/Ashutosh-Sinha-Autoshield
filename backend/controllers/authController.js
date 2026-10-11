@@ -17,18 +17,16 @@ exports.login =
         password,
       } = req.body;
 
-      const admin =
-        await Admin.findOne({
-          username,
-        });
+      const admin = await Admin.findOne({ username });
+      console.log("Login database:", Admin.db.name);
+console.log("Login username:", username);
+console.log("Admin found:", !!admin);
 
-      if (!admin) {
-        return res
-          .status(401)
-          .json({
-            message:
-              "Invalid Credentials",
-          });
+if (!admin) {
+  return res.status(401).json({
+    message: "Invalid Credentials",
+  });
+
       }
 
       const isMatch =

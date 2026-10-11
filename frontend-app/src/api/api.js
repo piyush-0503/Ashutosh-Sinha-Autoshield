@@ -1,5 +1,8 @@
 import axios from "axios";
 
-export default axios.create({
-  baseURL: "https://dark-edition.onrender.com/api",
+const api = axios.create({
+  baseURL: "http://localhost:5000/api",
+  timeout: 15000,
 });
+
+export default api;

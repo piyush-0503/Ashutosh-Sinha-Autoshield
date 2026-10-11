@@ -1,283 +1,374 @@
+
 import { useState } from "react";
 
 export default function PpfOrder() {
   const brands = [
-    {
-      name: "XPEL Ultimate Plus",
-      warranty: "10 Years",
-    },
-    {
-      name: "Garware Premium",
-      warranty: "7 Years",
-    },
-    {
-      name: "Llumar Platinum",
-      warranty: "10 Years",
-    },
-    {
-      name: "STEK DYNOshield",
-      warranty: "8 Years",
-    },
+    { name: "XPEL Ultimate Plus", warranty: "10 Years" },
+    { name: "Garware Premium", warranty: "7 Years" },
+    { name: "Llumar Platinum", warranty: "10 Years" },
+    { name: "STEK DYNOshield", warranty: "8 Years" },
   ];
 
   const [brand, setBrand] = useState(brands[0]);
-  const [qty, setQty] = useState(1);
-
+  const [qty, setQty] = useState("1");
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const [requestType, setRequestType] = useState("Booking");
 
-  const whatsappMessage = `Hello PPF Studio
+  const quantity = Math.max(1, Number(qty) || 1);
 
-Name: ${name}
+  const whatsappMessage = `Hello PPF Studio,
+
+Request Type: ${requestType}
+
+Customer Name: ${name}
 Mobile: ${mobile}
 Email: ${email}
 Address: ${address}
 
 PPF Brand: ${brand.name}
-Quantity: ${qty} Feet
-Warranty: ${brand.warranty}`;
+Quantity: ${quantity} Feet
+Warranty: ${brand.warranty}
+
+Please confirm availability, final price and delivery/booking details.
+Thank you!`;
+
+  const whatsappLink = `https://wa.me/917570908459?text=${encodeURIComponent(
+    whatsappMessage
+  )}`;
+
+  const handleSubmit = (type) => {
+    if (!name.trim() || !mobile.trim() || !address.trim()) {
+      alert("Please enter your name, mobile number and address.");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(mobile.replace(/\D/g, ""))) {
+      alert("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    if (!Number.isInteger(Number(qty)) || Number(qty) < 1) {
+      alert("Please enter a valid quantity of at least 1 foot.");
+      return;
+    }
+
+    setRequestType(type);
+
+    const message = `Hello PPF Studio,
+
+Request Type: ${type}
+
+Customer Name: ${name}
+Mobile: ${mobile}
+Email: ${email || "Not provided"}
+Address: ${address}
+
+PPF Brand: ${brand.name}
+Quantity: ${quantity} Feet
+Warranty: ${brand.warranty}
+
+Please confirm availability, final price and ${type.toLowerCase()} details.
+Thank you!`;
+
+    window.open(
+      `https://wa.me/917570908459?text=${encodeURIComponent(message)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background:
-          "radial-gradient(circle at top,#2b1020,#090909 65%)",
-        color: "#fff",
-        padding: "80px 20px",
-      }}
-    >
-     <div
-  style={{
-    textAlign: "center",
-    marginBottom: "60px",
-    paddingTop: "90px",
-    fontFamily: "'Poppins', sans-serif",
-  }}
->
-  <h1
-    style={{
-      fontSize: "clamp(42px, 6vw, 72px)",
-      fontWeight: "900",
-      lineHeight: "1.1",
-      letterSpacing: "2px",
-      margin: 0,
-      textTransform: "uppercase",
-      background:
-        "linear-gradient(90deg,#D4AF37,#FFD700,#FFF1A8,#D4AF37)",
-      WebkitBackgroundClip: "text",
-      WebkitTextFillColor: "transparent",
-      textShadow:
-        "0 0 30px rgba(212,175,55,0.3)",
-    }}
-  >
-    PPF Material Inquiry
-  </h1>
+    <main className="ppf-order-page">
+      <style>{`
+        .ppf-order-page,
+        .ppf-order-page * {
+          box-sizing: border-box;
+        }
 
-  <div
-    style={{
-      width: "120px",
-      height: "4px",
-      background:
-        "linear-gradient(90deg,#D4AF37,#FFD700)",
-      margin: "18px auto",
-      borderRadius: "10px",
-    }}
-  />
+        .ppf-order-page {
+          min-height: 100vh;
+          width: 100%;
+          overflow-x: clip;
+          padding: 35px 16px 60px;
+          color: #fff;
+          background: radial-gradient(circle at top,#2b1020,#090909 65%);
+        }
 
-  <p
-    style={{
-      color: "#cfcfcf",
-      fontSize: "18px",
-      fontWeight: "400",
-      letterSpacing: "0.5px",
-      marginTop: "15px",
-      maxWidth: "600px",
-      marginInline: "auto",
-      lineHeight: "1.8",
-    }}
-  >
-    Choose your preferred PPF brand and send
-    your requirements directly on WhatsApp.
-  </p>
-</div>
+        .ppf-order-heading {
+          text-align: center;
+          margin: 25px auto 40px;
+          font-family: Poppins, Arial, sans-serif;
+        }
 
-      <div
-        style={{
-          maxWidth: "850px",
-          margin: "auto",
-          background: "#111",
-          padding: "40px",
-          borderRadius: "25px",
-          border: "1px solid #D4AF37",
-        }}
-      >
-        <label style={labelStyle}>
+        .ppf-order-heading h1 {
+          font-size: clamp(32px,6vw,65px);
+          line-height: 1.15;
+          overflow-wrap: anywhere;
+          margin: 0;
+          background: linear-gradient(90deg,#D4AF37,#FFD700,#FFF1A8,#D4AF37);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        .ppf-order-heading p {
+          max-width: 620px;
+          margin: 18px auto 0;
+          color: #ccc;
+          font-size: 17px;
+          line-height: 1.7;
+        }
+
+        .ppf-order-card {
+          width: 100%;
+          max-width: 850px;
+          margin: 0 auto;
+          padding: clamp(18px,4vw,40px);
+          background: #111;
+          border: 1px solid rgba(212,175,55,.5);
+          border-radius: 22px;
+          box-shadow: 0 12px 40px rgba(0,0,0,.3);
+        }
+
+        .ppf-order-label {
+          display: block;
+          margin: 20px 0 8px;
+          color: #D4AF37;
+          font-weight: 700;
+          font-size: 15px;
+        }
+
+        .ppf-order-input {
+          display: block;
+          width: 100%;
+          min-width: 0;
+          padding: 14px;
+          border: 1px solid #66501b;
+          border-radius: 10px;
+          background: #0f0f0f;
+          color: #fff;
+          font-size: 16px;
+        }
+
+        .ppf-order-input:focus {
+          outline: 2px solid rgba(212,175,55,.4);
+          border-color: #D4AF37;
+        }
+
+        .ppf-order-brand {
+          margin-top: 22px;
+          padding: 20px;
+          border-radius: 14px;
+          background: #0b0b0b;
+          border: 1px solid #282828;
+        }
+
+        .ppf-order-actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+          margin-top: 30px;
+        }
+
+        .ppf-order-button {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 54px;
+          padding: 14px;
+          border: 0;
+          border-radius: 12px;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 700;
+          text-align: center;
+          cursor: pointer;
+          text-decoration: none;
+        }
+
+        .ppf-order-inquiry {
+          background: linear-gradient(90deg,#128C7E,#25D366);
+        }
+
+        .ppf-order-booking {
+          background: linear-gradient(90deg,#7b112d,#D4AF37);
+        }
+
+        @media(max-width:560px) {
+          .ppf-order-actions {
+            grid-template-columns: 1fr;
+          }
+
+          .ppf-order-page {
+            padding: 22px 12px 40px;
+          }
+        }
+      `}</style>
+
+      <header className="ppf-order-heading">
+        <h1>PPF Material Inquiry</h1>
+
+        <div
+          style={{
+            width: 100,
+            height: 4,
+            margin: "18px auto",
+            borderRadius: 10,
+            background: "linear-gradient(90deg,#D4AF37,#FFD700)",
+          }}
+        />
+
+        <p>
+          Select your preferred PPF material, enter your details
+          and send an inquiry or booking request directly on WhatsApp.
+        </p>
+      </header>
+
+      <section className="ppf-order-card">
+        <h2 style={{ color: "#D4AF37", textAlign: "center" }}>
+          Customer & Material Details
+        </h2>
+
+        <label className="ppf-order-label" htmlFor="ppf-brand">
           Select PPF Brand
         </label>
 
         <select
+          id="ppf-brand"
+          className="ppf-order-input"
           value={brand.name}
           onChange={(e) =>
-            setBrand(
-              brands.find(
-                (b) => b.name === e.target.value
-              )
-            )
+            setBrand(brands.find((b) => b.name === e.target.value))
           }
-          style={inputStyle}
         >
           {brands.map((b) => (
-            <option key={b.name}>
+            <option key={b.name} value={b.name}>
               {b.name}
             </option>
           ))}
         </select>
 
-        <div
-          style={{
-            marginTop: "20px",
-            background: "#0f0f0f",
-            padding: "20px",
-            borderRadius: "15px",
-          }}
-        >
-          <h3 style={{ color: "#D4AF37" }}>
+        <div className="ppf-order-brand">
+          <h3 style={{ color: "#D4AF37", marginBottom: 10 }}>
             {brand.name}
           </h3>
-
-          <p>
-            Warranty : {brand.warranty}
+          <p style={{ color: "#ddd" }}>
+            Warranty: {brand.warranty}
+          </p>
+          <p style={{ color: "#aaa", marginTop: 8, fontSize: 13 }}>
+            Final warranty terms are subject to brand and product confirmation.
           </p>
         </div>
 
-        <div style={{ marginTop: "20px" }}>
-          <label style={labelStyle}>
-            Quantity
-          </label>
+        <label className="ppf-order-label" htmlFor="ppf-quantity">
+          Quantity (Feet)
+        </label>
 
-          <input
-            type="number"
-            min="1"
-            value={qty}
-            onChange={(e) =>
-              setQty(e.target.value)
-            }
-            style={inputStyle}
-          />
+        <input
+          id="ppf-quantity"
+          className="ppf-order-input"
+          type="number"
+          min="1"
+          step="1"
+          value={qty}
+          onChange={(e) => setQty(e.target.value)}
+          required
+        />
+
+        <label className="ppf-order-label" htmlFor="ppf-name">
+          Full Name
+        </label>
+
+        <input
+          id="ppf-name"
+          className="ppf-order-input"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter your full name"
+          autoComplete="name"
+          required
+        />
+
+        <label className="ppf-order-label" htmlFor="ppf-mobile">
+          Mobile Number
+        </label>
+
+        <input
+          id="ppf-mobile"
+          className="ppf-order-input"
+          type="tel"
+          inputMode="numeric"
+          value={mobile}
+          onChange={(e) => setMobile(e.target.value)}
+          placeholder="10-digit mobile number"
+          autoComplete="tel"
+          required
+        />
+
+        <label className="ppf-order-label" htmlFor="ppf-email">
+          Email Address (Optional)
+        </label>
+
+        <input
+          id="ppf-email"
+          className="ppf-order-input"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          autoComplete="email"
+        />
+
+        <label className="ppf-order-label" htmlFor="ppf-address">
+          Full Address
+        </label>
+
+        <textarea
+          id="ppf-address"
+          className="ppf-order-input"
+          rows={4}
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          placeholder="Enter your full delivery/service address"
+          autoComplete="street-address"
+          required
+          style={{ resize: "vertical" }}
+        />
+
+        <div className="ppf-order-actions">
+          <button
+            type="button"
+            className="ppf-order-button ppf-order-inquiry"
+            onClick={() => handleSubmit("Inquiry")}
+          >
+            💬 Inquiry on WhatsApp
+          </button>
+
+          <button
+            type="button"
+            className="ppf-order-button ppf-order-booking"
+            onClick={() => handleSubmit("Booking Request")}
+          >
+            📦 Book PPF Material
+          </button>
         </div>
 
-        <div style={{ marginTop: "20px" }}>
-          <label style={labelStyle}>
-            Full Name
-          </label>
-
-          <input
-            type="text"
-            value={name}
-            onChange={(e) =>
-              setName(e.target.value)
-            }
-            placeholder="Enter Name"
-            style={inputStyle}
-          />
-        </div>
-
-        <div style={{ marginTop: "20px" }}>
-          <label style={labelStyle}>
-            Mobile Number
-          </label>
-
-          <input
-            type="tel"
-            value={mobile}
-            onChange={(e) =>
-              setMobile(e.target.value)
-            }
-            placeholder="Enter Mobile Number"
-            style={inputStyle}
-          />
-        </div>
-
-        <div style={{ marginTop: "20px" }}>
-          <label style={labelStyle}>
-            Email Address
-          </label>
-
-          <input
-            type="email"
-            value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
-            placeholder="Enter Email"
-            style={inputStyle}
-          />
-        </div>
-
-        <div style={{ marginTop: "20px" }}>
-          <label style={labelStyle}>
-            Full Address
-          </label>
-
-          <textarea
-            rows="4"
-            value={address}
-            onChange={(e) =>
-              setAddress(e.target.value)
-            }
-            placeholder="Enter Address"
-            style={{
-              ...inputStyle,
-              resize: "none",
-            }}
-          />
-        </div>
-
-        <a
-          href={`https://wa.me/917570908459?text=${encodeURIComponent(
-            whatsappMessage
-          )}`}
-          target="_blank"
-          rel="noreferrer"
+        <p
           style={{
-            display: "block",
-            marginTop: "35px",
+            marginTop: 18,
+            color: "#aaa",
+            fontSize: 13,
+            lineHeight: 1.6,
             textAlign: "center",
-            padding: "18px",
-            borderRadius: "15px",
-            background:
-              "linear-gradient(90deg,#128C7E,#25D366)",
-            color: "#fff",
-            textDecoration: "none",
-            fontSize: "18px",
-            fontWeight: "bold",
           }}
         >
-          Inquiry on WhatsApp
-        </a>
-      </div>
-    </div>
+          This sends a WhatsApp request only. Your order is not confirmed
+          until PPF Studio confirms availability, pricing and delivery.
+        </p>
+      </section>
+    </main>
   );
 }
-
-const labelStyle = {
-  color: "#D4AF37",
-  fontWeight: "bold",
-  fontSize: "18px",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "15px",
-  marginTop: "10px",
-  borderRadius: "12px",
-  background: "#0f0f0f",
-  border: "1px solid #D4AF37",
-  color: "#fff",
-  fontSize: "16px",
-  outline: "none",
-  boxSizing: "border-box",
-};
